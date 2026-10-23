@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "signals_counted": 1820,
+  "good_snr_count": 1040,
+  "selected_windows": 9100,
+  "five_correct": 1646,
+  "middle_correct": 1571,
+  "good_five_correct": 1018,
+  "good_middle_correct": 985,
+  "five_fusion_recomputed": true,
+  "true_middle_window_verified": true,
+  "low_score_signals_not_filtered": true,
+  "status_counts": {
+    "classified": 1585,
+    "uncertain": 235
+  },
+  "cli_prediction_matches_evaluation": true,
+  "cli_first_call_ms": 223.27709989622235,
+  "model_sha256_unchanged_from_training": "4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0",
+  "dataset_generation_code_hashes_match": true,
+  "tests_passed": 82
+}

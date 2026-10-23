@@ -1,0 +1,68 @@
+version: amc-baseline-v1
+seed: 20261014
+classes:
+  - AM
+  - FM
+  - ASK
+  - BPSK
+  - QPSK
+  - 8PSK
+  - PI4_DQPSK
+  - 16QAM
+  - 64QAM
+  - 2FSK
+  - 4FSK
+  - 2GFSK
+dataset:
+  window_samples: 2048
+  storage_dtype: float32
+  snr_db: [0, 5, 10, 15, 20, 25, 30]
+  per_class_per_snr:
+    train: 1000
+    validation: 200
+    test: 300
+  subtypes:
+    AM: [DSB_LC, SSB]
+    ASK: [OOK, BINARY_NONZERO]
+synthesis:
+  symbol_rate_hz: [5000, 50000]
+  source_symbols: 1024
+  # Source oversampling, not the classifier's samples per symbol.
+  # 16 keeps wide 4FSK sources above the normalized target rate (4 * B).
+  samples_per_symbol: 16
+  rrc_rolloff: 0.35
+  rrc_span_symbols: 10
+  message_bandwidth_hz: [1000, 10000]
+  am_index: [0.3, 0.8]
+  fm_deviation_over_message_bandwidth: [0.5, 5.0]
+  fsk2_index: [0.6, 1.2]
+  fsk4_index: [0.3, 0.7]
+  gfsk_bt: [0.3, 0.7]
+  ask_low_to_high_amplitude: [0.15, 0.6]
+  residual_frequency_offset_fraction: 0.02
+preprocess:
+  output_rate_over_estimated_bandwidth: 4.0
+  frequency_margin_each_side: 0.1
+  bandwidth_estimate_relative_error: 0.1
+  filter_attenuation_db: 60.0
+  resampling_max_denominator: 512
+  edge_guard_output_samples: 64
+model:
+  architecture: resnet18_1d
+  input_channels: 2
+  stage_channels: [32, 64, 128, 256]
+training:
+  optimizer: AdamW
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 64
+  max_epochs: 50
+  mixed_precision: true
+  scheduler: cosine
+  early_stopping_patience: 8
+  selection_metric: validation_accuracy_good_snr
+acceptance:
+  snr_db: [15, 20, 25, 30]
+  overall_top1_accuracy_target: 0.95
+  count_all_samples: true
+  domain: independent_synthetic_single_signal_windows

@@ -1,0 +1,17 @@
+version: amc-bandwidth-sweep-v1
+seed: 20261016
+seed_namespace: 4
+per_class_per_snr: 10
+bandwidth_hz: [100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000, 20000000]
+acquisition_rate_over_bandwidth: [5, 10, 20]
+max_output_rate_relative_error: 0.001
+effective_samples: 16384
+max_windows: 5
+batch_size: 64
+score_threshold: 0.6
+timing_warmup_signals: 5
+source_lengths:
+  digital_symbols: 4096
+  am_samples: 81920
+  fm_samples: 40960
+  ofdm_symbols: 128

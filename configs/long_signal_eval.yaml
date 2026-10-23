@@ -1,0 +1,14 @@
+version: amc-long-signal-v1
+seed: 20261015
+seed_namespace: 3
+per_class_per_snr: 20
+effective_samples: 16384
+max_windows: 5
+batch_size: 64
+score_threshold: 0.6
+timing_warmup_signals: 5
+source_lengths:
+  digital_symbols: 4096
+  am_samples: 81920
+  fm_samples: 40960
+  ofdm_symbols: 128

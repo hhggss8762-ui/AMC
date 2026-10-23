@@ -1,0 +1,15 @@
+services:
+  signal-recognition:
+    image: weitaoccc/signal-recognition:0.1.0-gpu
+    container_name: signal-recognition
+    ports:
+      - "${SERVICE_PORT:-5555}:5555"
+    gpus: all
+    environment:
+      MODEL_DEVICE: cuda
+      AMC_DEVICE: cuda
+      AMC_WINDOW_BATCH_SIZE: "64"
+      AMC_MAX_SIGNALS: "64"
+      AMC_MAX_REQUEST_BYTES: "268435456"
+      TF_MAX_ELEMENTS: "20000000"
+    restart: unless-stopped

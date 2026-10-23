@@ -1,0 +1,6 @@
+# Match the HTTP stack already used by the detector 0.2.1 where pinned.
+# Install inside the existing Anaconda amc environment; no Torch upgrade.
+fastapi==0.121.1
+pydantic==2.12.4
+python-multipart==0.0.20
+uvicorn==0.38.0

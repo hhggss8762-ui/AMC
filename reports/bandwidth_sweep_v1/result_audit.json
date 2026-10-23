@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "signals": 7280,
+  "selected_windows": 36400,
+  "good_snr_signals": 4160,
+  "correct_five": 6667,
+  "correct_middle": 6371,
+  "good_correct_five": 4088,
+  "good_correct_middle": 3965,
+  "fusion_recomputed": true,
+  "all_bandwidth_groups_recomputed": true,
+  "model_sha256_unchanged": "4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0",
+  "preprocessing_source_unchanged": true,
+  "resampling_max_denominator": 512,
+  "source_hashes_match_generation": true,
+  "tests_passed": 113,
+  "cli_20mhz_matches_evaluation": true,
+  "cli_first_call_ms_excluding_model_load": 210.26899991557002
+}

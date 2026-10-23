@@ -1,0 +1,12 @@
+{
+  "image": "weitaoccc/signal-recognition:0.1.0-gpu",
+  "repository_url": "https://hub.docker.com/r/weitaoccc/signal-recognition",
+  "visibility": "public",
+  "digest": "sha256:1a45d1b7824f5dfade99c08681fa7d5f4f1f5d24493c19f302e7dd695ae48d48",
+  "platform": "linux/amd64",
+  "remote_matches_verified_local_image": true,
+  "anonymous_registry_manifest_and_config_access": true,
+  "tag_count_changed_by_this_task": 1,
+  "latest_tag_created": false,
+  "verified_at": "2026-10-20T20:58:23.150658+08:00"
+}

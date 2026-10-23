@@ -1,0 +1,2 @@
+# HTTP TestClient only; not needed by the deployed inference service.
+httpx==0.28.1

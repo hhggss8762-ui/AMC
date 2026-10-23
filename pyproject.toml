@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amc-baseline"
+version = "0.1.0"
+description = "Reproducible synthetic IQ preparation for a 13-class AMC baseline"
+requires-python = ">=3.12,<3.13"
+dependencies = ["numpy==2.2.6", "scipy==1.15.3", "PyYAML==6.0.2"]
+
+[project.optional-dependencies]
+service = ["fastapi==0.121.1", "pydantic==2.12.4", "python-multipart==0.0.20", "uvicorn==0.38.0"]
+service-test = ["httpx==0.28.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

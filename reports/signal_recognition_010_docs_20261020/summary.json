@@ -1,0 +1,18 @@
+{
+  "image": "weitaoccc/signal-recognition:0.1.0-gpu",
+  "before_image_id": "sha256:9f15053a124015470d23da977f474c98ec10bee5b89736b828e784a6c8a4d780",
+  "after_image_id": "sha256:1a45d1b7824f5dfade99c08681fa7d5f4f1f5d24493c19f302e7dd695ae48d48",
+  "changed_image_files": [
+    "/app/docs/README.md",
+    "/app/docs/RECEIVER_IQ_PREPROCESSING_REFERENCE.md"
+  ],
+  "runtime_configuration_unchanged": true,
+  "inference_code_and_weights_layers_reused": true,
+  "dependency_versions_unchanged": true,
+  "container_image_matches_tag": true,
+  "container_health": "healthy",
+  "image_docs_no_offline_handoff_instructions": true,
+  "delivery_directory_generated": false,
+  "docker_hub_uploaded": false,
+  "verification": "Image contents and dependency hashes; detector regression for three input modes; mixed-length AMC, 14-signal batching, empty-frame and 400/413 behavior."
+}

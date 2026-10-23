@@ -1,0 +1,48 @@
+{
+  "device": "cuda",
+  "classes": [
+    "AM",
+    "FM",
+    "ASK",
+    "BPSK",
+    "QPSK",
+    "8PSK",
+    "PI4_DQPSK",
+    "16QAM",
+    "64QAM",
+    "2FSK",
+    "4FSK",
+    "2GFSK",
+    "OFDM"
+  ],
+  "signals": 5,
+  "valid_classified": 3,
+  "null_signals": 2,
+  "network_windows": 8,
+  "http_matches_local": true,
+  "one_result_per_signal_in_order": true,
+  "public_fields_only_ids_and_category": true,
+  "empty_frame_passed": true,
+  "many_signal_count": 14,
+  "many_signal_windows": 70,
+  "many_signal_network_batches": 2,
+  "warm_http_ms_samples": [
+    37.451100011821836,
+    23.47180002834648,
+    23.53540004696697,
+    32.83789998386055,
+    8.419399964623153
+  ],
+  "warm_http_median_ms": 23.53540004696697,
+  "warm_http_max_ms": 37.451100011821836,
+  "bulk_http_ms": 67.66599998809397,
+  "local_compute_ms": {
+    "window_selection": 0.7071999716572464,
+    "normalization_and_inference": 21.15580003010109,
+    "fusion": 0.13949995627626777,
+    "total_processing": 22.002499958034605
+  },
+  "ready_after_initial_client_ms": 350.47649999614805,
+  "checkpoint_sha256": "4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0",
+  "note": "Internal integration fixtures derived from existing independent synthetic records; not a receiver reference-data deliverable. Timings exclude receiver preprocessing, detector, client file I/O and model cold start; 5 repeats are diagnostic, not a throughput benchmark."
+}

@@ -1,0 +1,160 @@
+{
+  "passed": true,
+  "checkpoint_epoch": 17,
+  "epochs_completed": 25,
+  "test_count": 27300,
+  "good_snr_count": 15600,
+  "good_snr_correct": 14827,
+  "good_snr_errors": 773,
+  "no_test_filtering": true,
+  "best_selected_from_validation_only": true,
+  "early_stopping_verified": true,
+  "epoch_seconds_mean": 18.66503949601203,
+  "epoch_seconds_median": 18.032156400149688,
+  "training_elapsed_seconds": 467.6051744001452,
+  "per_class": [
+    {
+      "class_name": "AM",
+      "overall_recall": 0.7871428571428571,
+      "good_snr_recall": 0.8133333333333334,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "FM",
+      "overall_recall": 0.9914285714285714,
+      "good_snr_recall": 1.0,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "ASK",
+      "overall_recall": 0.9585714285714285,
+      "good_snr_recall": 0.9975,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "BPSK",
+      "overall_recall": 0.9952380952380953,
+      "good_snr_recall": 1.0,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "QPSK",
+      "overall_recall": 0.7742857142857142,
+      "good_snr_recall": 0.9991666666666666,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "8PSK",
+      "overall_recall": 0.8685714285714285,
+      "good_snr_recall": 0.9991666666666666,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "PI4_DQPSK",
+      "overall_recall": 0.8261904761904761,
+      "good_snr_recall": 1.0,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "16QAM",
+      "overall_recall": 0.6728571428571428,
+      "good_snr_recall": 0.8516666666666667,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "64QAM",
+      "overall_recall": 0.6804761904761905,
+      "good_snr_recall": 0.7691666666666667,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "2FSK",
+      "overall_recall": 0.9709523809523809,
+      "good_snr_recall": 0.9983333333333333,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "4FSK",
+      "overall_recall": 0.9704761904761905,
+      "good_snr_recall": 1.0,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "2GFSK",
+      "overall_recall": 0.9257142857142857,
+      "good_snr_recall": 0.9991666666666666,
+      "good_snr_support": 1200
+    },
+    {
+      "class_name": "OFDM",
+      "overall_recall": 0.9028571428571428,
+      "good_snr_recall": 0.9283333333333333,
+      "good_snr_support": 1200
+    }
+  ],
+  "top_good_snr_confusions": [
+    {
+      "true": "64QAM",
+      "predicted": "16QAM",
+      "count": 276
+    },
+    {
+      "true": "AM",
+      "predicted": "OFDM",
+      "count": 224
+    },
+    {
+      "true": "16QAM",
+      "predicted": "64QAM",
+      "count": 178
+    },
+    {
+      "true": "OFDM",
+      "predicted": "AM",
+      "count": 86
+    },
+    {
+      "true": "ASK",
+      "predicted": "AM",
+      "count": 3
+    },
+    {
+      "true": "2FSK",
+      "predicted": "2GFSK",
+      "count": 2
+    },
+    {
+      "true": "QPSK",
+      "predicted": "8PSK",
+      "count": 1
+    },
+    {
+      "true": "8PSK",
+      "predicted": "PI4_DQPSK",
+      "count": 1
+    },
+    {
+      "true": "64QAM",
+      "predicted": "OFDM",
+      "count": 1
+    },
+    {
+      "true": "2GFSK",
+      "predicted": "2FSK",
+      "count": 1
+    }
+  ],
+  "export": {
+    "path": "D:\\FDU\\Things\\SpecAgent\\YUNHAI_Station\\AMC\\models\\amc_baseline_v1.pt",
+    "bytes": 3934603,
+    "sha256": "4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0",
+    "model_state_identical_to_best": true,
+    "stratified_inference_windows": 91,
+    "prediction_mismatches": 0,
+    "max_score_difference": 0.00029754638671875,
+    "score_difference_tolerance": 0.001,
+    "input_normalized_by_inference": true,
+    "note": "Scores compared across different batch compositions and inference RMS normalization; not expected bit-identical."
+  },
+  "source_checkpoint_sha256": "74d4e9b8c328312e8f2a7029103144d99ea5c4201728c0e3d74e99391d12a5a9"
+}

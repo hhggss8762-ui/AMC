@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "total_signals": 1820,
+  "selected_windows": 9100,
+  "class_snr_cells": 91,
+  "unique_sources": 1820,
+  "prior_datasets_checked": {
+    "data\\full_v1": 136500,
+    "data\\preview_ofdm_v1": 728,
+    "data\\preview_v1": 672,
+    "data\\long_signal_preview_v1": 26
+  },
+  "prior_source_overlap": 0,
+  "max_metadata_snr_error_db": 9.372985942945888e-09,
+  "reference_files_checked": 15,
+  "max_reference_snr_error_db": 5.955996584816603e-09,
+  "raw_payload_bytes": 999358464,
+  "total_directory_bytes": 1026693054,
+  "checks": [
+    "raw complex64 finite IQ",
+    "raw file SHA256",
+    "raw preprocessing replay",
+    "five nonoverlapping windows",
+    "class/SNR/subtype counts",
+    "unique source seeds",
+    "acquisition metadata excludes labels",
+    "whole-record SNR and reference components"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "total_signals": 7280,
+  "selected_windows": 36400,
+  "class_snr_cells": 728,
+  "unique_sources": 7280,
+  "prior_datasets_checked": {
+    "data\\full_v1": 136500,
+    "data\\preview_ofdm_v1": 728,
+    "data\\preview_v1": 672,
+    "data\\long_signal_preview_v1": 26,
+    "data\\long_signal_v1": 1820,
+    "data\\bandwidth_preview_v1": 208
+  },
+  "prior_source_overlap": 0,
+  "max_metadata_snr_error_db": 1.0618656176575314e-08,
+  "reference_files_checked": 120,
+  "max_reference_snr_error_db": 6.071656954986793e-09,
+  "raw_payload_bytes": 4638922216,
+  "total_directory_bytes": 4862603167,
+  "checks": [
+    "raw complex64 finite IQ",
+    "raw file SHA256",
+    "raw preprocessing replay",
+    "five nonoverlapping windows",
+    "class/SNR/subtype counts",
+    "unique source seeds",
+    "acquisition metadata excludes labels",
+    "whole-record SNR and reference components"
+  ],
+  "bandwidth_hz": [
+    100000,
+    200000,
+    500000,
+    1000000,
+    2000000,
+    5000000,
+    10000000,
+    20000000
+  ],
+  "max_output_rate_relative_error": 0.0009165985665954279,
+  "preprocess_resampling_max_denominator": 512
+}
