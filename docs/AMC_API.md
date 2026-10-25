@@ -1,5 +1,6 @@
 # AMC 批量调制识别 API
 
+本文对应 0.1.1：20 类调制识别，默认 unknown 阈值为 0.5。请求格式沿用原版。
 
 
 ## 1. 接口与服务检查
@@ -30,8 +31,10 @@
   "device": "cuda",
   "classes": [
     "AM", "FM", "ASK", "BPSK", "QPSK", "8PSK", "PI4_DQPSK",
-    "16QAM", "64QAM", "2FSK", "4FSK", "2GFSK", "OFDM"
-  ]
+    "16QAM", "64QAM", "2FSK", "4FSK", "2GFSK", "OFDM",
+    "OQPSK", "DBPSK", "DQPSK", "MSK", "GMSK", "32QAM", "256QAM"
+  ],
+  "unknown_threshold": 0.5
 }
 ```
 
@@ -129,7 +132,7 @@ HTTP 200 响应格式：
   "frame_id": "frame_0001",
   "results": [
     {"signal_id": "signal_0", "modulation_type": "QPSK"},
-    {"signal_id": "signal_1", "modulation_type": "FM"}
+    {"signal_id": "signal_1", "modulation_type": "unknown"}
   ]
 }
 ```
@@ -139,15 +142,21 @@ HTTP 200 响应格式：
 | `frame_id` | string | 原样返回请求中的帧编号 |
 | `results` | array | 与提交信号逐条对应，按 `iq_0`、`iq_1` 等编号顺序返回 |
 | `results[].signal_id` | string | 原样返回对应元数据中的信号编号 |
-| `results[].modulation_type` | string 或 null | 调制类别；合法但无法分类的信号为 `null` |
+| `results[].modulation_type` | string 或 null | 20 类名称之一、字符串 `"unknown"`，或有效数据不足时的 `null` |
 
 接收机按 `frame_id` 和 `signal_id` 将结果回填到自己保存的检测框。响应只包含上述编号和类别，不返回原检测框、置信分数或原检测 JSON。示例类别仅用于说明响应结构，实际类别由上传的 IQ 决定。
 
-### 可返回的 13 个类别
+### 可返回的 20 个类别
 
-`AM`、`FM`、`ASK`、`BPSK`、`QPSK`、`8PSK`、`PI4_DQPSK`、`16QAM`、`64QAM`、`2FSK`、`4FSK`、`2GFSK`、`OFDM`。
+`AM`、`FM`、`ASK`、`BPSK`、`QPSK`、`8PSK`、`PI4_DQPSK`、`16QAM`、`64QAM`、`2FSK`、`4FSK`、`2GFSK`、`OFDM`、`OQPSK`、`DBPSK`、`DQPSK`、`MSK`、`GMSK`、`32QAM`、`256QAM`。
 
-`PI4_DQPSK` 表示 π/4-DQPSK。非空结果是这 13 类中的首选类别，不能作为可靠的未知调制拒识结论。
+`PI4_DQPSK` 表示 π/4-DQPSK。新增的 7 类为 `OQPSK、DBPSK、DQPSK、MSK、GMSK、32QAM、256QAM`。
+
+### unknown：低分结果
+
+服务对同一信号的各窗口 softmax 分数等权平均，最大平均分数 **≥0.5** 返回对应类别，**<0.5** 返回字符串 `"unknown"`。阈值由部署参数 `AMC_SCORE_THRESHOLD` 配置，当前值也可从 `/v1/amc/ready` 的 `unknown_threshold` 读取。
+
+接收机将 `"unknown"` 显示为“未知调制”。这是分数不足时的输出，不是第 21 个训练类别；原本用于数据过短或功率不足的 `null` 保留原含义。两者都属于 HTTP 200 的逐条结果。
 
 ### 单条信号无法分类
 

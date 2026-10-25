@@ -3,19 +3,20 @@ ARG DETECTOR_BASE=umdetree/signal-detector@sha256:38d12791e62a026ac1cbeb0064e4dd
 FROM ${DETECTOR_BASE}
 
 LABEL org.opencontainers.image.title="Signal detection and modulation recognition" \
-      org.opencontainers.image.version="0.1.0-gpu" \
+      org.opencontainers.image.version="0.1.1" \
       signal-recognition.detector.base="umdetree/signal-detector:0.2.1" \
-      signal-recognition.amc.sha256="4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0"
+      signal-recognition.amc.sha256="26c2606b81d599426d9786b5c4c12b434425a5dc39c374cfeafeb109d6bffbea"
 
-ENV AMC_CHECKPOINT=/models/amc_baseline_v1.pt \
+ENV AMC_CHECKPOINT=/models/amc20_v1.pt \
     AMC_DEVICE=auto \
+    AMC_SCORE_THRESHOLD=0.5 \
     AMC_WINDOW_BATCH_SIZE=64 \
     AMC_MAX_SIGNALS=64 \
     AMC_MAX_REQUEST_BYTES=268435456
 
 # Only the inference modules are shipped; no training data, runs or test fixtures.
 COPY src/amc/__init__.py src/amc/device.py src/amc/model.py src/amc/inference.py src/amc/prepared_inference.py src/amc/service.py src/amc/integrated.py /app/amc/
-COPY models/amc_baseline_v1.pt /models/amc_baseline_v1.pt
+COPY models/amc20_v1.pt /models/amc20_v1.pt
 COPY docker/check_runtime.py docker/healthcheck.py /app/deployment/
 RUN python /app/deployment/check_runtime.py
 

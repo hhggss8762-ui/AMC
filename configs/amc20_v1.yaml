@@ -1,0 +1,96 @@
+version: amc20-v1
+seed: 20261025
+classes: [AM, FM, ASK, BPSK, QPSK, 8PSK, PI4_DQPSK, 16QAM, 64QAM, 2FSK, 4FSK, 2GFSK, OFDM, OQPSK, DBPSK, DQPSK, MSK, GMSK, 32QAM, 256QAM]
+dataset:
+  window_samples: 2048
+  storage_dtype: float32
+  snr_db: [0, 5, 10, 15, 20, 25, 30]
+  per_class_per_snr: {train: 1000, validation: 125, test: 250}
+  ofdm_train_multiplier: 3
+  subtypes:
+    AM: [DSB_LC, SSB]
+    ASK: [OOK, BINARY_NONZERO]
+    DBPSK: [DIFFERENTIAL_RRC, DIFFERENTIAL_BARKER11]
+  ofdm_groups:
+    generic: {train: 480, validation: 20, test: 40}
+    wlan_style: {train: 480, validation: 20, test: 40}
+    lte_style: {train: 720, validation: 30, test: 60}
+    multiscale: {train: 480, validation: 20, test: 40}
+    sparse_pilot: {train: 480, validation: 20, test: 40}
+    partial_band: {train: 360, validation: 15, test: 30}
+synthesis:
+  symbol_rate_hz: [5000, 2000000]
+  source_symbols: 1024
+  samples_per_symbol: 16
+  rrc_rolloff: 0.35
+  rrc_rolloff_range: [0.15, 0.5]
+  rrc_span_symbols: 10
+  message_bandwidth_hz: [1000, 200000]
+  am_index: [0.3, 0.9]
+  fm_deviation_over_message_bandwidth: [0.5, 5.0]
+  fsk2_index: [0.6, 1.2]
+  fsk4_index: [0.3, 0.7]
+  gfsk_bt: [0.3, 0.7]
+  gmsk_bt: [0.25, 0.7]
+  ask_low_to_high_amplitude: [0.15, 0.6]
+  residual_frequency_offset_fraction: 0.02
+  ofdm:
+    groups:
+      generic:
+        fft_sizes: [64, 128, 256, 512, 1024]
+        cp_fractions: [0.0625, 0.125, 0.25]
+      wlan_style:
+        fft_sizes: [64, 128, 256]
+        cp_fractions: [0.125, 0.25]
+      lte_style:
+        fft_sizes: [512, 1024, 2048]
+        cp_fractions: [0.0703125, 0.25]
+      multiscale:
+        fft_sizes: [256, 512, 1024, 2048, 4096]
+        cp_fractions: [0.0625, 0.0703125, 0.125]
+      sparse_pilot:
+        fft_sizes: [256, 512, 1024, 2048]
+        cp_fractions: [0.0703125, 0.125, 0.25]
+      partial_band:
+        fft_sizes: [256, 512, 1024, 2048]
+        cp_fractions: [0.0703125, 0.125, 0.25]
+    subcarrier_spacings_hz: [312.5, 1250, 3750, 7500, 15000, 30000, 60000, 120000, 312500]
+    subcarrier_modulations: [BPSK, QPSK, 16QAM, 64QAM, 256QAM]
+    partial_band_fraction: [0.4, 0.85]
+channel:
+  kinds: [awgn, flat_fading, multipath]
+  probabilities: [0.45, 0.2, 0.35]
+  ofdm_max_cfo_over_spacing: 0.2
+  center_error_over_bandwidth: 0.015
+  iq_imbalance_probability: 0.25
+  iq_gain_error_db: [-0.6, 0.6]
+  iq_phase_error_degrees: [-4, 4]
+  dc_probability: 0.12
+  dc_amplitude_over_rms: [0.005, 0.04]
+  clipping_probability: 0.08
+  clipping_rms: [2.0, 3.5]
+preprocess:
+  output_rate_over_estimated_bandwidth: 4.0
+  frequency_margin_each_side: 0.1
+  bandwidth_estimate_relative_error: 0.1
+  filter_attenuation_db: 60.0
+  resampling_max_denominator: 512
+  edge_guard_output_samples: 64
+model:
+  architecture: resnet18_1d
+  input_channels: 2
+  stage_channels: [32, 64, 128, 256]
+training:
+  optimizer: AdamW
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 64
+  max_epochs: 50
+  mixed_precision: true
+  scheduler: cosine
+  early_stopping_patience: 8
+  selection_metric: validation_accuracy_good_snr
+acceptance:
+  snr_db: [15, 20, 25, 30]
+  domain: independent_synthetic_single_signal_windows
+  count_all_samples: true

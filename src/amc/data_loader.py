@@ -23,8 +23,16 @@ class IQWindowDataset(Dataset):
         self._label_path = self.root / split / "labels.npy"
         self.iq = np.load(self._iq_path, mmap_mode="r", allow_pickle=False)
         self.labels = np.load(self._label_path, mmap_mode="r", allow_pickle=False)
-        expected = (len(self.classes) * len(self.manifest["snr_db"])
-                    * self.manifest["counts_per_class_per_snr"][split])
+        actual_counts = self.manifest.get("actual_counts_per_class_per_snr")
+        if actual_counts is not None:
+            # Version 2 permits intentionally more training windows for OFDM.
+            counts = actual_counts[split]
+            if set(counts) != set(self.classes) or any(not isinstance(v, int) or v < 1 for v in counts.values()):
+                raise ValueError("Invalid per-class sample counts.")
+            expected = sum(counts.values()) * len(self.manifest["snr_db"])
+        else:
+            expected = (len(self.classes) * len(self.manifest["snr_db"])
+                        * self.manifest["counts_per_class_per_snr"][split])
         if self.iq.shape != (expected, 2, window_samples) or self.iq.dtype != np.float32:
             raise ValueError("Invalid model input shape or dtype.")
         if self.labels.shape != (expected,) or self.labels.dtype != np.int64:

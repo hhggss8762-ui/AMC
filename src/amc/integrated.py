@@ -10,5 +10,5 @@ app.description = (
     "Original signal-detector 0.2.1 endpoints and an independent prepared-IQ "
     "batch classification API. The receiver performs IQ extraction and DDC."
 )
-app.version = "0.1.0"
+app.version = "0.1.1"
 install_amc(app)

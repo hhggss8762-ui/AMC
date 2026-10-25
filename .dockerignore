@@ -13,7 +13,7 @@
 !src/amc/service.py
 !src/amc/integrated.py
 !models/
-!models/amc_baseline_v1.pt
+!models/amc20_v1.pt
 !docs/
 !docs/README.md
 !docs/AMC_API.md

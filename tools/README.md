@@ -5,6 +5,8 @@
 | 用途 | 工具 |
 |---|---|
 | 仿真窗口生成与校验 | `generate_dataset.py`、`validate_dataset.py`、`render_preview.py` |
+| 20 类数据生成与校验 | `generate_dataset20.py`，参数及数量见 `docs/AMC20_DATASET.md` |
+| 20 类微调 | `finetune_amc20.py`，需本地数据及初始化权重，步骤见 `docs/AMC20_TRAINING.md` |
 | 训练与独立测试 | `train.py`、`evaluate.py`、`render_training.py` |
 | 窗口与连续单信号推理 | `infer.py`、`infer_long.py` |
 | 长信号生成与配对验证 | `generate_long_signals.py`、`validate_long_signals.py`、`evaluate_long_signals.py`、`render_long_report.py` |
@@ -17,6 +19,8 @@
 
 数据集、完整训练输出、真实 IQ 及内部 HTTP 样例未随仓库上传。`validate_signal_recognition.py` 依赖本机保存的 `reports/real_iq_adapter_v2/`、`reports/amc_service_v1/internal_inputs/` 等文件和运行中的容器，不能直接在干净克隆上完成历史回归。`render_bandwidth_report.py` 也需要原训练环境记录 `runs/full_baseline_v1/environment.json` 等输入。相关原始记录只在本地保留。
 
-`audit_integrated_runtime.py` 会运行临时容器，并比较当前源码与镜像内容，适用于按当前源码重新构建的镜像。仓库文档已整理，不能要求它与未重建的已发布镜像逐文件相同。本次建仓不运行 Docker 构建、容器回归或发布操作。
+GitHub 不包含任何权重文件；源码推理、微调和镜像构建所需权重需在本地准备。针对实采数据的逐框核实脚本及完整输出保留在本地，0.1.1 的简要验证记录见[发布记录](../reports/signal_recognition_011_release/REPORT.md)。
+
+`audit_integrated_runtime.py` 会运行临时容器，并比较当前源码与镜像内容，目标版本为 `weitaoccc/signal-recognition:0.1.1`，在该版本构建后使用。
 
 历史离线打包工具仅留在本地，不纳入仓库。接收机部署采用 [Docker Hub 拉取流程](../docs/README.md)。

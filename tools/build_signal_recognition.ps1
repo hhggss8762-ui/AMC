@@ -9,7 +9,7 @@ if ($LASTEXITCODE -ne 0 -or $actualBaseId -ne $expectedBaseId) {
 }
 Push-Location -LiteralPath $projectRoot
 try {
-    docker build --pull=false --provenance=false --progress=plain --build-arg "DETECTOR_BASE=$baseImage" -f docker/Dockerfile -t weitaoccc/signal-recognition:0.1.0-gpu .
+    docker build --pull=false --provenance=false --progress=plain --build-arg "DETECTOR_BASE=$baseImage" -f docker/Dockerfile -t weitaoccc/signal-recognition:0.1.1 .
     if ($LASTEXITCODE -ne 0) { throw 'Integrated image build failed.' }
 } finally {
     Pop-Location

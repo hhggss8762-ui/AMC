@@ -39,14 +39,15 @@ def main():
     metrics, raw = evaluate_model(
         model, loader, device, dataset.classes, payload["config"]["acceptance"]["snr_db"]
     )
+    target = payload["config"]["acceptance"].get("overall_top1_accuracy_target")
     metrics.update({
         "dataset_profile": dataset.manifest["profile"], "split": args.split,
         "checkpoint": str(Path(args.checkpoint).resolve()), "checkpoint_epoch": payload["epoch"],
         "purpose": "preview_pipeline_check" if dataset.manifest["profile"] == "preview" else "formal_evaluation",
-        "acceptance_evaluated": dataset.manifest["profile"] == "full" and args.split == "test",
+        "acceptance_evaluated": dataset.manifest["profile"] == "full" and args.split == "test" and target is not None,
     })
     metrics["acceptance_passed"] = (
-        metrics["good_snr_accuracy"] >= payload["config"]["acceptance"]["overall_top1_accuracy_target"]
+        metrics["good_snr_accuracy"] >= target
         if metrics["acceptance_evaluated"] and metrics["good_snr_accuracy"] is not None else None
     )
     output.mkdir(parents=True)

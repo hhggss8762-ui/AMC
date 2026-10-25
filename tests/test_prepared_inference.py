@@ -74,6 +74,7 @@ def fake_classifier():
     c.device = torch.device("cpu")
     c.classes, c.window_samples, c.window_batch_size, c.max_windows = ["A", "B"], 2048, 4, 5
     c.window_classifier = FixedWindowScores()
+    c.score_threshold = None
     return c
 
 
@@ -116,6 +117,44 @@ def test_null_empty_frame_and_duplicate_identifiers():
         c.predict_frame("", [])
 
 
+def test_unknown_is_decided_after_fusion_and_preserves_null():
+    c = fake_classifier()
+    c.score_threshold = .6
+    a = np.ones((12000, 2), dtype=np.float32)
+    b = np.ones((4096, 2), dtype=np.float32)
+    output, details = c.predict_frame("f", [
+        PreparedSignal(metadata("a", len(a)), a),
+        PreparedSignal(metadata("b", len(b)), b),
+        PreparedSignal(metadata("short", 1), a[:1]),
+        PreparedSignal(metadata("zero", 2048), np.zeros((2048, 2), np.float32)),
+    ])
+    assert [r["modulation_type"] for r in output["results"]] == ["unknown", "A", None, None]
+    assert details["signals"][0]["status"] == "unknown"
+    assert details["signals"][0]["class_name"] == "B"
+    assert details["signals"][0]["score"] == pytest.approx(.59)
+
+
+def test_unknown_threshold_accepts_exact_boundary():
+    c = fake_classifier()
+    c.score_threshold = .5
+
+    class Scores:
+        threshold = .5
+
+        def predict(self, windows, batch_size):
+            return [{"class_id": 0, "class_scores": dict(A=.5, B=.5)}]
+
+    c.window_classifier = Scores()
+    output, _ = c.predict_frame("f", [PreparedSignal(metadata(count=2048), np.ones((2048, 2), np.float32))])
+    assert output["results"][0]["modulation_type"] == "A"
+
+
+@pytest.mark.parametrize("value", [-.1, 1.1, True, float("nan"), float("inf")])
+def test_invalid_unknown_threshold_rejected_before_loading(value):
+    with pytest.raises(ValueError, match="score_threshold"):
+        PreparedIQBatchClassifier("nonexistent.pt", score_threshold=value)
+
+
 def test_mixed_zero_and_nonzero_windows_do_not_abort_other_signals():
     c = fake_classifier()
     x = np.ones((4096, 2), dtype=np.float32)
@@ -126,9 +165,18 @@ def test_mixed_zero_and_nonzero_windows_do_not_abort_other_signals():
     assert detail["inferred_window_count"] == 0
 
 
-def test_real_checkpoint_batch_split_matches_individual_window_reference():
+def test_checkpoint_batch_split_matches_individual_window_reference(tmp_path):
+    from amc.config import load_config
+    from amc.model import build_model
+
     torch.set_num_threads(2)
-    checkpoint = Path(__file__).parents[1] / "models/amc_baseline_v1.pt"
+    # Exercise real network batching without requiring a distributed weight file.
+    config = load_config(Path(__file__).parents[1] / "configs/baseline.yaml")
+    torch.manual_seed(92)
+    model = build_model(config).eval()
+    checkpoint = tmp_path / "batch_reference.pt"
+    torch.save({"format_version": 1, "epoch": 0, "classes": config["classes"],
+                "config": config, "model_state": model.state_dict()}, checkpoint)
     c = PreparedIQBatchClassifier(checkpoint, "cpu", window_batch_size=2)
     rng = np.random.default_rng(92)
     signals = [PreparedSignal(metadata(f"s{i}", n), rng.standard_normal((n, 2)).astype(np.float32))

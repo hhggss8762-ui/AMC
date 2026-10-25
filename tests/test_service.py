@@ -100,14 +100,14 @@ def test_health_and_empty_frame_do_not_load_classifier(client, factory):
 
 
 def test_ready_loads_and_warms_once_then_inference_reuses_model(client, factory):
-    assert client.get("/v1/amc/ready").json() == {"status": "ready", "device": "cpu", "classes": ["AM", "QPSK"]}
+    assert client.get("/v1/amc/ready").json() == {"status": "ready", "device": "cpu", "classes": ["AM", "QPSK"], "unknown_threshold": .5}
     assert client.get("/v1/amc/ready").status_code == 200
     response = client.post("/v1/amc/infer", files=multipart(signal_parts()))
     assert response.status_code == 200
     assert response.json() == {"frame_id": "frame_0001", "results": [{"signal_id": "signal_0", "modulation_type": "QPSK"}]}
     assert len(factory.instances) == 1
     assert factory.instances[0].warmups == 1
-    assert factory.instances[0].kwargs == {"device": "auto", "window_batch_size": 64, "max_windows": 5}
+    assert factory.instances[0].kwargs == {"device": "auto", "window_batch_size": 64, "max_windows": 5, "score_threshold": .5}
 
 
 def test_internal_diagnostics_use_uvicorn_logger_and_stay_out_of_response(client, caplog):
@@ -355,6 +355,7 @@ def test_environment_configuration(monkeypatch, factory):
     monkeypatch.setenv("AMC_CHECKPOINT", "chosen.pt")
     monkeypatch.setenv("AMC_DEVICE", "cpu")
     monkeypatch.setenv("AMC_WINDOW_BATCH_SIZE", "7")
+    monkeypatch.setenv("AMC_SCORE_THRESHOLD", "0.4")
     monkeypatch.setenv("AMC_MAX_SIGNALS", "2")
     monkeypatch.setenv("AMC_MAX_REQUEST_BYTES", "100000")
     with TestClient(create_app(classifier_factory=factory)) as client:
@@ -363,3 +364,36 @@ def test_environment_configuration(monkeypatch, factory):
     assert str(instance.checkpoint) == "chosen.pt"
     assert instance.kwargs["device"] == "cpu"
     assert instance.kwargs["window_batch_size"] == 7
+    assert instance.kwargs["score_threshold"] == .4
+
+
+@pytest.mark.parametrize("value", ["nan", "inf", "-0.1", "1.1", "bad", True])
+def test_invalid_score_threshold_fails_configuration(value, factory):
+    with pytest.raises(ValueError, match="score_threshold"):
+        create_app(score_threshold=value, classifier_factory=factory)
+
+
+def test_unknown_exact_boundary_and_null_through_real_prepared_classifier(monkeypatch):
+    import amc.prepared_inference as prepared
+    import torch
+
+    class WindowScores:
+        def __init__(self, checkpoint, device, score_threshold):
+            self.device, self.classes, self.window_samples = torch.device("cpu"), ["A", "B", "C"], 2048
+            self.threshold = score_threshold
+
+        def predict(self, windows, batch_size):
+            scores = {1: [.49, .48, .03], 2: [.5, .3, .2], 3: [.1, .8, .1]}
+            rows = [scores[int(w[0, 0])] for w in windows]
+            return [{"class_id": int(np.argmax(r)), "class_scores": dict(zip(self.classes, r))} for r in rows]
+
+    monkeypatch.setattr(prepared, "WindowClassifier", WindowScores)
+    with TestClient(create_app(score_threshold=.5)) as client:
+        parts = []
+        for i, marker in enumerate([1, 2, 3, 0]):
+            parts += signal_parts(i, iq=np.full((2048, 2), marker, dtype="<f4").tobytes())
+        parts += signal_parts(4, count=2047)
+        response = client.post("/v1/amc/infer", files=multipart(parts))
+        assert response.status_code == 200
+        assert [r["modulation_type"] for r in response.json()["results"]] == ["unknown", "A", "B", None, None]
+        assert all(set(r) == {"signal_id", "modulation_type"} for r in response.json()["results"])

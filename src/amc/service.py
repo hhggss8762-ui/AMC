@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import re
@@ -27,7 +28,7 @@ from .prepared_inference import PreparedSignal, SignalMetadata
 # Reuse uvicorn's configured INFO handler for normal server runs without
 # changing root logging or a future detector application's logger configuration.
 LOGGER = logging.getLogger("uvicorn.error.amc")
-DEFAULT_CHECKPOINT = Path(__file__).resolve().parents[2] / "models" / "amc_baseline_v1.pt"
+DEFAULT_CHECKPOINT = Path(__file__).resolve().parents[2] / "models" / "amc20_v1.pt"
 METADATA_MAX_BYTES = 16 * 1024
 PART_NAME = re.compile(r"^(iq|metadata)_(0|[1-9][0-9]*)$")
 
@@ -41,6 +42,18 @@ def _positive_int(value, name):
         raise ValueError(f"{name} must be a positive integer.") from exc
     if parsed < 1 or (not isinstance(value, str) and parsed != value):
         raise ValueError(f"{name} must be a positive integer.")
+    return parsed
+
+
+def _score_threshold(value):
+    if isinstance(value, bool):
+        raise ValueError("score_threshold must be a finite number in [0,1].")
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("score_threshold must be a finite number in [0,1].") from exc
+    if not math.isfinite(parsed) or not 0 <= parsed <= 1:
+        raise ValueError("score_threshold must be a finite number in [0,1].")
     return parsed
 
 
@@ -104,11 +117,13 @@ class RequestSizeLimitMiddleware:
 class AMCService:
     """One resident classifier; model initialization and execution are serialized."""
 
-    def __init__(self, checkpoint, device, window_batch_size, classifier_factory=None):
+    def __init__(self, checkpoint, device, window_batch_size, classifier_factory=None,
+                 score_threshold=.5):
         self.checkpoint = Path(checkpoint)
         self.device = device
         self.window_batch_size = window_batch_size
         self.classifier_factory = classifier_factory
+        self.score_threshold = score_threshold
         self._classifier = None
         self._lock = threading.Lock()
 
@@ -122,6 +137,7 @@ class AMCService:
             classifier = factory(
                 self.checkpoint, device=self.device,
                 window_batch_size=self.window_batch_size, max_windows=5,
+                score_threshold=self.score_threshold,
             )
             classifier.warmup()
             self._classifier = classifier
@@ -130,14 +146,15 @@ class AMCService:
     def ready(self):
         with self._lock:
             classifier = self._load_locked()
-            return {"status": "ready", "device": str(classifier.device), "classes": list(classifier.classes)}
+            return {"status": "ready", "device": str(classifier.device), "classes": list(classifier.classes),
+                    "unknown_threshold": self.score_threshold}
 
     def predict(self, frame_id, signals):
         with self._lock:
             classifier = self._load_locked()
             response, diagnostics = classifier.predict_frame(frame_id, signals)
             # Keep per-signal winning score/reason/timing in normal logs. Full
-            # 13-class vectors are available at DEBUG without growing every INFO
+            # Class score vectors are available at DEBUG without growing every INFO
             # request record proportionally to classes * signals.
             summary = dict(diagnostics)
             if "signals" in summary:
@@ -288,7 +305,10 @@ def create_amc_router(service, max_signals):
         summary="Classify a batch of already preprocessed single-signal IQ records",
         description=("Multipart frame_id text plus paired iq_0 binary / metadata_0 JSON text, "
                      "iq_1 / metadata_1, etc. Indices start at zero and are contiguous. "
-                     "IQ is little-endian float32 in I0,Q0,I1,Q1 order. No detector JSON is required."),
+                     "IQ is little-endian float32 in I0,Q0,I1,Q1 order. No detector JSON is required. "
+                     "Returns unknown when the maximum averaged window score is below the configured "
+                     "threshold (default 0.5); insufficient-length or zero-power IQ returns null. "
+                     "Scores are not included in the public response."),
         openapi_extra={"requestBody": {"required": True, "content": {"multipart/form-data": {"schema": {
             "type": "object", "required": ["frame_id"], "properties": {
                 "frame_id": {"type": "string", "example": "frame_0001"},
@@ -314,7 +334,7 @@ def create_amc_router(service, max_signals):
 
 
 def install_amc(application, *, checkpoint=None, device=None, window_batch_size=None,
-                max_signals=None, max_request_bytes=None,
+                max_signals=None, max_request_bytes=None, score_threshold=None,
                 classifier_factory: Callable | None = None):
     """Add AMC to an existing FastAPI app without changing its detector routes.
 
@@ -323,6 +343,9 @@ def install_amc(application, *, checkpoint=None, device=None, window_batch_size=
     """
     checkpoint = checkpoint if checkpoint is not None else os.environ.get("AMC_CHECKPOINT", str(DEFAULT_CHECKPOINT))
     device = device if device is not None else os.environ.get("AMC_DEVICE", "auto")
+    score_threshold = _score_threshold(
+        score_threshold if score_threshold is not None else os.environ.get("AMC_SCORE_THRESHOLD", "0.5"),
+    )
     window_batch_size = _positive_int(
         window_batch_size if window_batch_size is not None else os.environ.get("AMC_WINDOW_BATCH_SIZE", "64"),
         "window_batch_size",
@@ -334,7 +357,7 @@ def install_amc(application, *, checkpoint=None, device=None, window_batch_size=
         max_request_bytes if max_request_bytes is not None else os.environ.get("AMC_MAX_REQUEST_BYTES", str(256 * 1024 * 1024)),
         "max_request_bytes",
     )
-    service = AMCService(checkpoint, device, window_batch_size, classifier_factory)
+    service = AMCService(checkpoint, device, window_batch_size, classifier_factory, score_threshold)
     application.state.amc_service = service
     application.add_middleware(RequestSizeLimitMiddleware, max_bytes=max_request_bytes)
     application.include_router(create_amc_router(service, max_signals))
@@ -343,7 +366,7 @@ def install_amc(application, *, checkpoint=None, device=None, window_batch_size=
 
 def create_app(**amc_options):
     """Build without loading a checkpoint; first ready/infer call loads once."""
-    application = FastAPI(title="AMC single-signal batch classification", version="0.1.0")
+    application = FastAPI(title="AMC single-signal batch classification", version="0.1.1")
 
     @application.get("/health")
     async def health():

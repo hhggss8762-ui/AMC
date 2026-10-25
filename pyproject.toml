@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amc-baseline"
-version = "0.1.0"
-description = "Reproducible synthetic IQ preparation for a 13-class AMC baseline"
+version = "0.1.1"
+description = "Synthetic IQ preparation and batch inference for 20-class modulation recognition"
 requires-python = ">=3.12,<3.13"
 dependencies = ["numpy==2.2.6", "scipy==1.15.3", "PyYAML==6.0.2"]
 

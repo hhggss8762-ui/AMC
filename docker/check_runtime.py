@@ -17,9 +17,9 @@ for name, version in expected.items():
     if actual != version:
         raise RuntimeError(f"Unexpected inherited dependency {name}: {actual}, expected {version}")
 
-checkpoint = Path("/models/amc_baseline_v1.pt")
+checkpoint = Path("/models/amc20_v1.pt")
 digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
-if digest != "4f22f777fb859c406fab04b59cfdf67805c1145031ec34a3d10b5af3748d1da0":
+if digest != "26c2606b81d599426d9786b5c4c12b434425a5dc39c374cfeafeb109d6bffbea":
     raise RuntimeError("AMC checkpoint checksum mismatch")
 payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
 if payload["format_version"] != 1 or payload["config"]["dataset"]["window_samples"] != 2048:
@@ -27,11 +27,15 @@ if payload["format_version"] != 1 or payload["config"]["dataset"]["window_sample
 if payload["classes"] != [
     "AM", "FM", "ASK", "BPSK", "QPSK", "8PSK", "PI4_DQPSK", "16QAM",
     "64QAM", "2FSK", "4FSK", "2GFSK", "OFDM",
+    "OQPSK", "DBPSK", "DQPSK", "MSK", "GMSK", "32QAM", "256QAM",
 ]:
     raise RuntimeError("AMC class mapping mismatch")
+if payload["classes"] != payload["config"]["classes"]:
+    raise RuntimeError("AMC checkpoint/config class order mismatch")
 manifest = {
     "python": sys.version, "torch_cuda": torch.version.cuda,
     "amc_checkpoint_sha256": digest,
+    "amc_classes": payload["classes"],
     "packages": dict(sorted(
         (d.metadata["Name"], d.version) for d in importlib.metadata.distributions()
     )),

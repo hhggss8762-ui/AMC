@@ -17,10 +17,23 @@ dist/
 # Historical offline export tool stays local.
 /tools/package_signal_recognition.py
 
-# Only the frozen inference checkpoint and its description are versioned.
+# Weights stay local; published Docker images contain the inference checkpoint.
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
 /models/*
 !/models/README.md
-!/models/amc_baseline_v1.pt
+
+# Receiver-specific experiments require local IQ and archived reports.
+/tools/compare_amc20_receiver_windows.py
+/tools/evaluate_amc20_unknown.py
+/tools/report_dataset20.py
+/tools/report_receiver_verification.py
+/tools/verify_receiver_*.py
+/tools/verify_amc20_service.py
+/tools/validate_signal_recognition_011.py
 
 # Keep only the selected synthetic results and historical validation summaries.
 /reports/**
@@ -65,3 +78,6 @@ dist/
 !/reports/signal_recognition_010_docs_20261020/summary.json
 !/reports/signal_recognition_010_push_20261020/
 !/reports/signal_recognition_010_push_20261020/summary.json
+!/reports/signal_recognition_011_release/
+!/reports/signal_recognition_011_release/REPORT.md
+!/reports/signal_recognition_011_release/summary.json

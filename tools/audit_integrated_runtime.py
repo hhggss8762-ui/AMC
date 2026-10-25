@@ -7,7 +7,7 @@ import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
-IMAGE = 'weitaoccc/signal-recognition:0.1.0-gpu'
+IMAGE = 'weitaoccc/signal-recognition:0.1.1'
 BASE = 'umdetree/signal-detector:0.2.1'
 CODE = r'''
 import hashlib, importlib.metadata, json, pathlib, sys

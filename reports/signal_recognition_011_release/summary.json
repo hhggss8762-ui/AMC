@@ -1,0 +1,105 @@
+{
+  "version": "0.1.1",
+  "image": "weitaoccc/signal-recognition:0.1.1",
+  "digest": "sha256:591978b52250b5b00ee926d67a280cf2903b64c76fa40f1b70997f6d9c2a0049",
+  "platform": "linux/amd64",
+  "dockerhub_verified_at": "2026-10-25T20:54:07.146137+08:00",
+  "remote_matches_verified_local_image": true,
+  "anonymous_registry_access_verified": true,
+  "class_count": 20,
+  "input_complex_samples": 2048,
+  "max_windows_per_signal": 5,
+  "unknown_threshold": 0.5,
+  "checkpoint_sha256": "26c2606b81d599426d9786b5c4c12b434425a5dc39c374cfeafeb109d6bffbea",
+  "weights_in_git": false,
+  "synthetic_test": {
+    "sample_count": 35000,
+    "accuracy_0_30_db": 0.7190285714285715,
+    "sample_count_15_30_db": 20000,
+    "accuracy_15_30_db": 0.79405,
+    "threshold_05_0_30_db": {
+      "count": 35000,
+      "baseline_correct": 25166,
+      "baseline_errors": 9834,
+      "baseline_accuracy": 0.7190285714285715,
+      "accepted_count": 28224,
+      "unknown_count": 6776,
+      "coverage": 0.8064,
+      "accepted_correct": 23233,
+      "accepted_errors": 4991,
+      "accepted_accuracy": 0.8231646825396826,
+      "rejected_correct": 1933,
+      "rejected_errors": 4843,
+      "correct_rejection_rate": 0.0768099817213701,
+      "error_interception_rate": 0.49247508643481797,
+      "correct_retained_over_all": 0.6638
+    },
+    "threshold_05_15_30_db": {
+      "count": 20000,
+      "baseline_correct": 15881,
+      "baseline_errors": 4119,
+      "baseline_accuracy": 0.79405,
+      "accepted_count": 18024,
+      "unknown_count": 1976,
+      "coverage": 0.9012,
+      "accepted_correct": 15136,
+      "accepted_errors": 2888,
+      "accepted_accuracy": 0.8397691966267199,
+      "rejected_correct": 745,
+      "rejected_errors": 1231,
+      "correct_rejection_rate": 0.046911403564007303,
+      "error_interception_rate": 0.2988589463462005,
+      "correct_retained_over_all": 0.7568
+    }
+  },
+  "receiver_regression": {
+    "windows": 6,
+    "detection_boxes": 143,
+    "submitted_iq_records": 142,
+    "prepared_payloads_match_archive": true,
+    "tf_detection_after_time_alignment_matches_archive": true,
+    "raw_iq_detector_matches_archive": true,
+    "amc_outputs_match_local_threshold_05": true,
+    "preprocessing_unavailable": 1,
+    "api_result_counts": {
+      "OFDM": 106,
+      "null": 24,
+      "unknown": 5,
+      "256QAM": 2,
+      "AM": 1,
+      "PI4_DQPSK": 1,
+      "FM": 1,
+      "DBPSK": 1,
+      "BPSK": 1
+    },
+    "healthcheck_and_contract_checks_passed": true,
+    "sequential_pipeline_seconds": [
+      {
+        "window": "capture_2120_front",
+        "seconds": 0.4811250999337062
+      },
+      {
+        "window": "capture_2120_middle",
+        "seconds": 0.5761384998913854
+      },
+      {
+        "window": "capture_2120_back",
+        "seconds": 0.764876100118272
+      },
+      {
+        "window": "capture_2400_front",
+        "seconds": 0.44861560000572354
+      },
+      {
+        "window": "capture_2400_middle",
+        "seconds": 0.7098897999385372
+      },
+      {
+        "window": "capture_2400_back",
+        "seconds": 0.6415661000646651
+      }
+    ],
+    "capture_2400_sample_rate_hz_assumed": 307200000,
+    "real_accuracy": null
+  }
+}

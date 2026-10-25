@@ -113,11 +113,22 @@ def select_window_starts(length, window_samples=2048, max_windows=5):
 
 
 class PreparedIQBatchClassifier:
-    def __init__(self, checkpoint, device="auto", window_batch_size=64, max_windows=5):
+    def __init__(self, checkpoint, device="auto", window_batch_size=64, max_windows=5,
+                 score_threshold=None):
         if isinstance(window_batch_size, bool) or not isinstance(window_batch_size, int) or window_batch_size < 1:
             raise ValueError("window_batch_size must be a positive integer.")
         select_window_starts(0, max_windows=max_windows)
-        self.window_classifier = WindowClassifier(checkpoint, device)
+        if score_threshold is not None:
+            if (isinstance(score_threshold, bool) or not isinstance(score_threshold, (int, float))
+                    or not math.isfinite(score_threshold) or not 0 <= score_threshold <= 1):
+                raise ValueError("score_threshold must be a finite number in [0,1] or None.")
+            score_threshold = float(score_threshold)
+        # None preserves the unthresholded classifier used by historical replays.
+        # The HTTP service explicitly supplies its configured rejection threshold.
+        self.score_threshold = score_threshold
+        self.window_classifier = WindowClassifier(
+            checkpoint, device, **({"score_threshold": score_threshold} if score_threshold is not None else {}),
+        )
         self.device = self.window_classifier.device
         self.classes = self.window_classifier.classes
         self.window_samples = self.window_classifier.window_samples
@@ -184,9 +195,11 @@ class PreparedIQBatchClassifier:
             if not np.isfinite(average).all():
                 raise RuntimeError("Classifier returned nonfinite fused scores.")
             label = int(average.argmax())
-            result["modulation_type"] = self.classes[label]
+            rejected = self.score_threshold is not None and average[label] < self.score_threshold
+            result["modulation_type"] = "unknown" if rejected else self.classes[label]
             diagnostic.update(
-                status="classified" if average[label] >= self.window_classifier.threshold else "uncertain",
+                status="unknown" if rejected else (
+                    "classified" if average[label] >= self.window_classifier.threshold else "uncertain"),
                 class_name=self.classes[label], score=float(average[label]),
                 class_scores=dict(zip(self.classes, average.tolist())),
                 consistency=float(np.mean([p["class_id"] == label for p in selected_predictions])),

@@ -12,6 +12,9 @@ SPLITS = ("train", "validation", "test")
 def load_config(path: str | Path) -> dict:
     with Path(path).open(encoding="utf-8") as stream:
         config = yaml.safe_load(stream)
+    if config.get("version") == "amc20-v1":
+        from .dataset20 import load_config20
+        return load_config20(path)
     if tuple(config["classes"]) not in (CLASSES, CLASSES[:-1]):
         raise ValueError("Baseline class order must match CLASSES.")
     if config["dataset"]["window_samples"] != 2048:

@@ -4,9 +4,13 @@
 
 ## 1. 服务概述
 
-镜像：`weitaoccc/signal-recognition:0.1.0-gpu`，运行平台为 Linux amd64。
+镜像：`weitaoccc/signal-recognition:0.1.1`，运行平台为 Linux amd64。
 
-本版已完成本机 GPU 容器验证，并于 2026-10-20 发布至 Docker Hub。部署时使用上述固定镜像名称和版本。
+本文提供 0.1.1 的部署与调用说明，分类默认使用 20 类模型和 0.5 的 unknown 阈值。
+
+本版将调制识别从 13 类扩展到 20 类，新增 `OQPSK、DBPSK、DQPSK、MSK、GMSK、32QAM、256QAM`，并增加 `unknown` 输出。全部类别见[分类 API](AMC_API.md#可返回的-20-个类别)。
+
+接收机升级时增加上述类别的映射和显示；收到字符串 `"unknown"` 时显示“未知调制”，与 `null` 分别处理。原 IQ 预处理、请求字段、接口路径和编号关联方式保持不变。
 
 服务包含两项功能：
 
@@ -82,13 +86,13 @@
 先从 Docker Hub 拉取指定版本；本机已有对应镜像时，可跳过此步，直接启动：
 
 ```bash
-docker pull weitaoccc/signal-recognition:0.1.0-gpu
+docker pull weitaoccc/signal-recognition:0.1.1
 ```
 
 直接启动容器：
 
 ```bash
-docker run -d --name signal-recognition --gpus all -p 5555:5555 -e MODEL_DEVICE=cuda -e AMC_DEVICE=cuda weitaoccc/signal-recognition:0.1.0-gpu
+docker run -d --name signal-recognition --gpus all -p 5555:5555 -e MODEL_DEVICE=cuda -e AMC_DEVICE=cuda weitaoccc/signal-recognition:0.1.1
 ```
 
 主机端口 `5555` 如已占用，可改为 `-p 5556:5555`，客户端相应改用 `5556`。端口不同不改变接口路径。
@@ -116,6 +120,7 @@ Windows PowerShell 中请使用 `curl.exe` 代替别名 `curl`。远程调用请
 - 两个就绪接口均应返回 HTTP 200，且 `status` 为 `ready`，再开始完整检测与分类联调。
 - 首次就绪请求会触发对应模型加载与预热，可能比后续请求慢；不要把该次耗时当作稳定推理耗时。
 - `/ready` 仅检查检测模型，不能代替 `/v1/amc/ready`。
+- 新版 `/v1/amc/ready` 返回 20 类名称及 `unknown_threshold: 0.5`。
 
 ### 4.4 查看日志、停止与更新
 
@@ -178,21 +183,23 @@ curl --fail-with-body "$BASE_URL/v1/amc/infer" \
   "frame_id": "frame_0001",
   "results": [
     {"signal_id": "signal_0", "modulation_type": "QPSK"},
-    {"signal_id": "signal_1", "modulation_type": null}
+    {"signal_id": "signal_1", "modulation_type": "unknown"}
   ]
 }
 ```
 
-接收机按 `frame_id` 和 `signal_id` 找回原框，不依赖模型类别推断对应关系。`null` 表示该条数据无法完成分类，不是一个已识别的“未知调制”类别。
+接收机按 `frame_id` 和 `signal_id` 找回原框。最大平均分数 ≥0.5 返回调制类别，<0.5 返回字符串 `"unknown"`；少于 2048 个有效复数采样点或无有效功率等情况返回 `null`。公共响应不返回分数。
 
 ## 6. 分类配置与输入上限
 
-以下配置已在本版镜像中生效；配套 Compose 显式选择 GPU。
+本版构建配置如下；配套 Compose 显式选择 GPU。
 
 | 配置项 | 默认值 | 用途 |
 |---|---|---|
 | `MODEL_DEVICE` | 部署示例设为 `cuda` | 原版检测设备 |
 | `AMC_DEVICE` | `auto`；GPU 部署示例设为 `cuda` | 分类设备，可选 `cpu`、`cuda` |
+| `AMC_CHECKPOINT` | `/models/amc20_v1.pt` | 镜像内置的 20 类冻结权重 |
+| `AMC_SCORE_THRESHOLD` | `0.5` | 多窗平均后的最大分数低于此值时返回 `unknown` |
 | `AMC_WINDOW_BATCH_SIZE` | `64` | 内部每批网络窗口数，不是接收机必须提交的信号数 |
 | `AMC_MAX_SIGNALS` | `64` | 单次分类请求的最大信号条数 |
 | `AMC_MAX_REQUEST_BYTES` | `268435456` | 分类请求体上限，含 multipart 开销，256 MiB |
@@ -220,7 +227,7 @@ curl --fail-with-body "$BASE_URL/v1/amc/infer" \
    └─ client_amc_batch.py
 ```
 
-已发布的 `0.1.0-gpu` 镜像保留当时的英文文件名 `RECEIVER_IQ_PREPROCESSING_REFERENCE.md`；仓库现统一使用中文文件名。此次文档整理未重建或更新已发布镜像，查看已发布镜像时以容器内实际文件为准。
+0.1.1 使用上述中文预处理文档文件名。
 
 部署人员不需要项目训练目录。可在 Docker Desktop 的容器文件视图中查看这些文件，也可从已启动的容器复制到选定的本地工作目录：
 
@@ -236,11 +243,11 @@ docker cp signal-recognition:/app/docker-compose.yml ./docker-compose.yml
 python3 examples/client_amc_batch.py --url http://127.0.0.1:5555/v1/amc/infer --frame-id frame_0001 --signal signal_0.iq signal_0.json --signal signal_1.iq signal_1.json
 ```
 
-重复 `--signal IQ文件 JSON文件` 即可增加信号。远程调用时替换主机地址，JSON 字段见 [分类 API](AMC_API.md)。
+重复 `--signal IQ文件 JSON文件` 即可增加信号。客户端原样打印返回的类别、`unknown` 或 `null`，无需随类别扩展修改。远程调用时替换主机地址，JSON 字段见 [分类 API](AMC_API.md)。
 
 ## 8. 首次联调顺序
 
 1. 确认两个就绪接口正常，再用同一段数据的瀑布图和缓存 IQ 进行联调。
 2. 检查一个框的时间、频率换算和预处理结果，确认输出采样率、点数、I/Q 顺序正确。
-3. 批量提交同帧多个信号，核对每条结果与原框的对应关系；过短信号可返回 null。
+3. 批量提交同帧多个信号，核对每条结果与原框的对应关系，以及新增类别、`unknown`、`null` 的显示。
 4. 分别记录检测、接收机预处理、上传和分类耗时。模型首次加载另计，整帧时延需要在接收机实际流程中测量。
